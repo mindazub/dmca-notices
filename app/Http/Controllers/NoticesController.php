@@ -12,8 +12,6 @@ use App\Notice;
 use Illuminate\Support\Facades\Mail;
 use Auth;
 
-// use Mail;
-
 class NoticesController extends Controller
 {
 
@@ -27,9 +25,10 @@ class NoticesController extends Controller
 	
     public function index() {
     	
-    	// return Notice::all();
-        $notices = $this->user->notices;
-
+        // return Notice::all();
+        $notices = Notice::all();
+        // $notices = $this->user->notices();
+        // dd($notices);
         return view('notices.index', compact('notices'));
     }
     
@@ -39,9 +38,7 @@ class NoticesController extends Controller
      */
 
     public function create() {
-    	// get list of providers
-    	// load a view to create a new notice
-
+ 
     	$providers = Provider::lists('name', 'id');
 
     	return view('notices.create', compact('providers'));	
@@ -49,18 +46,12 @@ class NoticesController extends Controller
     
 
     public function confirm(PrepareNoticeRequest $request) {
-    	// return $request->all();
-
+ 
     	$data = $request->all();
 
     	$template = $this->compileDmcaTemplate($data);
 
-        // dd($template);
-
-        // session()->flash('dmca', $data);
         Session()->put('dmca', $data);
-
-        // dd(session()->flash('dmca', $data));
 
     	return view('notices.confirm', compact('template'));
 
@@ -86,11 +77,8 @@ class NoticesController extends Controller
 
 			$notice = $this->createNotice($request);
 
-           //$mailer->send();
-
             Mail::queue(['text'=>'emails.dmca'], compact('notice'), function($message) use ($notice)
             {
-                // dd($notice->getRecipientEmail());
                 $message->from($notice->getOwnerEmail())
                         ->to($notice->getRecipientEmail())
                         ->subject('DMCA Notice');
@@ -99,18 +87,6 @@ class NoticesController extends Controller
             flash('Youre DMCA notice has been delivered!');
 
            return redirect('notices');
-
-    	// session()->get('dmca', $data);
-
-    	// access template
-		// $data= session()->get('dmca');
-
-		// return $data;
-		// return \Request('template');
-
-		// email  form through the request 
-		//create migration for notices table
-
 
     }
 
@@ -126,12 +102,10 @@ class NoticesController extends Controller
         return redirect()->back();
     }
     
-    
 
     /**
      * create and persist new dmca notice
      */
-
 
     public function createNotice(Request $request) {
             
